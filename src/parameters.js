@@ -1,6 +1,6 @@
 /**
  * @file returns the parsed parameters.
- * @version 0.0.1.0
+ * @version 0.0.1.1
  */
 
 /**
@@ -70,4 +70,4 @@ var Param = (function (args) {
     .ToString()
   );
   Quit(1);
-})(Convert.ToNativeArray(Environment.GetCommandLineArgs(), Type.GetTypeHandle(new String())).slice(1));
+})(CommandLineArguments);

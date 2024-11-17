@@ -1,9 +1,9 @@
 /**
  * @file Launches the shortcut target PowerShell script with the selected markdown as an argument.
- * @version 0.0.1.0
+ * @version 0.0.1.1
  */
 
-RequestAdminPrivileges()
+RequestAdminPrivileges(CommandLineArguments)
 
 /** The application execution. */
 if (Param.Markdown) {
@@ -48,7 +48,7 @@ function WaitForExit(processId) {
   // The process termination event query. Win32_ProcessStopTrace requires admin rights to be used.
   var wqlQuery = "SELECT * FROM Win32_ProcessStopTrace WHERE ProcessName='cmd.exe' AND ProcessId=" + processId;
   // Wait for the process to exit.
-  var watcher = GetObject('winmgmts:').ExecNotificationQuery(wqlQuery);
+  var watcher = SWbemService.ExecNotificationQuery(wqlQuery);
   var cmdProcess = watcher.NextEvent();
   try {
     return cmdProcess.ExitStatus;
@@ -60,11 +60,14 @@ function WaitForExit(processId) {
   }
 }
 
-/** Request administrator privileges if standard user. */
-function RequestAdminPrivileges() {
+/**
+ * Request administrator privileges if standard user.
+ * @param {string[]} args are the input arguments.
+ */
+function RequestAdminPrivileges(args) {
   if (IsCurrentProcessElevated()) return;
-  var shell = new ActiveXObject('Shell.Application');
-  shell.ShellExecute(AssemblyLocation, Interaction.Command(), Missing.Value, 'runas', Constants.vbHidden);
+  var shell = new ShellClass();
+  shell.ShellExecute(AssemblyLocation, args.length ? String.Format('"{0}"', args.join('" "')):Missing.Value, Missing.Value, 'runas', Constants.vbHidden);
   Marshal.FinalReleaseComObject(shell);
   shell = null;
   Quit(0);
