@@ -1,6 +1,6 @@
 /**
  * @file some utility functions.
- * @version 0.0.1.1
+ * @version 0.0.1.2
  */
 
 var CommandLineArguments = Convert.ToNativeArray(Environment.GetCommandLineArgs(), Type.GetTypeHandle(new String())).slice(1);
@@ -8,7 +8,7 @@ var CommandLineArguments = Convert.ToNativeArray(Environment.GetCommandLineArgs(
 var AssemblyLocation = Assembly.GetExecutingAssembly().Location;
 
 /** @typedef {object} SWbemLocator */
-var SWbemLocator = new ActiveXObject('WbemScripting.SWbemLocator');
+var SWbemLocator = new SWbemLocatorClass();
 /** @typedef {object} SWbemService */
 var SWbemService = SWbemLocator.ConnectServer();
 /** @typedef {object} StdRegProv */
@@ -67,4 +67,42 @@ function Quit(exitCode) {
   Dispose();
   CollectGarbage();
   Environment.Exit(exitCode);
+}
+
+/**
+ * Set the specified property of a SWbemObject instance.
+ * @param {SWbemObject} inParams the object to set the property value from.
+ * @param {string} propertyName the property name.
+ * @param {object} propertyValue the property value.
+ */
+function SetWBemObjectProperty(inParams, propertyName, propertyValue) {
+  var inProperties = inParams.Properties_;
+  var property = inProperties.Item(propertyName);
+  property.Value = propertyValue;
+  Marshal.ReleaseComObject(property);
+  Marshal.ReleaseComObject(inProperties);
+  inProperties = null;
+  property = null;
+  inParams = null;
+}
+
+/**
+ * Get the specified property of a SWbemObject instance.
+ * @param {SWbemObject} inParams the object to get the property value from.
+ * @param {string} propertyName the property name.
+ * @returns {object} the property value.
+ */
+function GetWBemObjectProperty(outParams, propertyName) {
+  var outProperties = outParams.Properties_;
+  var property = outProperties.Item(propertyName);
+  try {
+    return property.Value;
+  } finally {
+    Marshal.ReleaseComObject(property);
+    Marshal.ReleaseComObject(outProperties);
+    Marshal.ReleaseComObject(outParams);
+    outParams = null;
+    outProperties = null;
+    property = null;
+  }
 }
