@@ -1,6 +1,6 @@
 /**
  * @file Launches the shortcut target PowerShell script with the selected markdown as an argument.
- * @version 0.0.1.1
+ * @version 0.0.1.2
  */
 
 RequestAdminPrivileges(CommandLineArguments)
@@ -51,7 +51,7 @@ function WaitForExit(processId) {
   var watcher = SWbemService.ExecNotificationQuery(wqlQuery);
   var cmdProcess = watcher.NextEvent();
   try {
-    return cmdProcess.ExitStatus;
+    return GetWBemObjectProperty(cmdProcess, 'ExitStatus');
   } finally {
     Marshal.FinalReleaseComObject(cmdProcess);
     Marshal.FinalReleaseComObject(watcher);
@@ -83,11 +83,11 @@ function IsCurrentProcessElevated() {
   var checkAccessMethod = stdRegProvMethods.Item('CheckAccess');
   var checkAccessMethodParams = checkAccessMethod.InParameters;
   var inParams = checkAccessMethodParams.SpawnInstance_();
-  inParams.hDefKey = Convert.ToInt32(HKU);
-  inParams.sSubKeyName = 'S-1-5-19\\Environment';
+  SetWBemObjectProperty(inParams, 'hDefKey', Convert.ToInt32(HKU));
+  SetWBemObjectProperty(inParams, 'sSubKeyName', 'S-1-5-19\\Environment');
   var outParams = StdRegProv.ExecMethod_(checkAccessMethod.Name, inParams);
   try {
-    return outParams.bGranted;
+    return GetWBemObjectProperty(outParams, 'bGranted');
   } finally {
     Marshal.FinalReleaseComObject(outParams);
     Marshal.FinalReleaseComObject(inParams);

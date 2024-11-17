@@ -1,6 +1,6 @@
 /**
  * @file the methods for managing the shortcut menu option: install and uninstall.
- * @version 0.0.1.0
+ * @version 0.0.1.1
  */
 
 /** @typedef {object} Setup */
@@ -23,7 +23,7 @@ var Setup = (function() {
 
     /** Add an icon to the shortcut menu in the registry. */
     AddIcon: function () {
-      Registry.SetValue(VERB_KEY, ICON_VALUENAME, Package.MenuIconPath);
+      Registry.SetValue(VERB_KEY, ICON_VALUENAME, AssemblyLocation);
     },
 
     /** Remove the shortcut icon menu. */
