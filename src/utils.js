@@ -1,12 +1,18 @@
 /**
  * @file some utility functions.
- * @version 0.0.1.0
+ * @version 0.0.1.1
  */
+
+var CommandLineArguments = Convert.ToNativeArray(Environment.GetCommandLineArgs(), Type.GetTypeHandle(new String())).slice(1);
 
 var AssemblyLocation = Assembly.GetExecutingAssembly().Location;
 
+/** @typedef {object} SWbemLocator */
+var SWbemLocator = new ActiveXObject('WbemScripting.SWbemLocator');
+/** @typedef {object} SWbemService */
+var SWbemService = SWbemLocator.ConnectServer();
 /** @typedef {object} StdRegProv */
-var StdRegProv = GetObject('winmgmts:StdRegProv');
+var StdRegProv = SWbemService.Get('StdRegProv');
 
 /**
  * Generate a random file path.
@@ -45,8 +51,12 @@ function Popup(messageText, popupType, popupButtons) {
 
 /** Destroy the COM objects. */
 function Dispose() {
+  Marshal.FinalReleaseComObject(SWbemLocator);
+  Marshal.FinalReleaseComObject(SWbemService);
   Marshal.FinalReleaseComObject(StdRegProv);
   StdRegProv = null;
+  SWbemService = null;
+  SWbemLocator = null;
 }
 
 /**
