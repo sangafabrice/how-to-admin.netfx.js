@@ -1,6 +1,6 @@
 /**
  * @file Launches the shortcut target PowerShell script with the selected markdown as an argument.
- * @version 0.0.1.4
+ * @version 0.0.1.5
  */
 
 RequestAdminPrivileges(CommandLineArguments)
@@ -76,6 +76,5 @@ function RequestAdminPrivileges(args) {
  * @returns {boolean} True if the running process is elevated, false otherwise.
  */
 function IsCurrentProcessElevated() {
-  var HKU = 0x80000003;
-  return StdRegProv.CheckAccess(HKU, 'S-1-5-19\\Environment');
+  return (new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator);
 }
