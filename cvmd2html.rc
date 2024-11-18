@@ -1,9 +1,11 @@
-// @version 0.0.1.0
+﻿// @version 0.0.1.1
 
 #include "version.h"
 
 
+#ifdef CVMD2HTML
 103 ICON "menu.ico"
+#endif
 
 
 1 VERSIONINFO
@@ -18,11 +20,15 @@ BLOCK "StringFileInfo"
   {
     VALUE "ProductName", "CvMd2Html Shortcut"
     VALUE "ProductVersion", VER_VERSION_STR
-    VALUE "LegalCopyright", "\xA9 2024 sangafabrice"
+    VALUE "LegalCopyright", "© 2024 sangafabrice"
     VALUE "CompanyName", "sangafabrice"
     VALUE "FileVersion", VER_VERSION_STR
+#ifdef CVMD2HTML
     VALUE "FileDescription", "CvMd2Html"
     VALUE "OriginalFileName", "cvmd2html.exe"
+#else
+    VALUE "FileDescription", "StdRegProv"
+#endif
   }
 }
 
