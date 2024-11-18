@@ -1,4 +1,4 @@
-﻿// @version 0.0.1.2
+﻿// @version 0.0.1.3
 
 #include "version.h"
 
@@ -31,3 +31,6 @@ BLOCK "VarFileInfo"
   VALUE "Translation", 0x007F 0x04B0
 }
 }
+
+
+1 24 "cvmd2html.manifest"

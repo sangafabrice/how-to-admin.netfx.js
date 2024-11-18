@@ -1,9 +1,7 @@
 /**
  * @file Launches the shortcut target PowerShell script with the selected markdown as an argument.
- * @version 0.0.1.5
+ * @version 0.0.1.6
  */
-
-RequestAdminPrivileges(CommandLineArguments)
 
 /** The application execution. */
 if (Param.Markdown) {
@@ -49,32 +47,4 @@ function WaitForExit(processId) {
   var wqlQuery = "SELECT * FROM Win32_ProcessStopTrace WHERE ProcessName='cmd.exe' AND ProcessId=" + processId;
   // Wait for the process to exit.
   return (new ManagementEventWatcher(wqlQuery)).WaitForNextEvent()['ExitStatus'];
-}
-
-/**
- * Request administrator privileges if standard user.
- * @param {string[]} args are the input arguments.
- */
-function RequestAdminPrivileges(args) {
-  if (IsCurrentProcessElevated()) return;
-  var startInfo = new ProcessStartInfo(AssemblyLocation, args.length ? String.Format('"{0}"', args.join('" "')):Missing.Value);
-  startInfo.UseShellExecute = true;
-  startInfo.Verb = 'runas';
-  startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-  try {
-    Process.Start(ProcessStartInfo(startInfo));
-  } catch (e: Win32Exception) {
-    Quit(0);
-  } catch (e: Exception) {
-    Quit(1);
-  }
-  Quit(0);
-}
-
-/**
- * Check if the process is elevated.
- * @returns {boolean} True if the running process is elevated, false otherwise.
- */
-function IsCurrentProcessElevated() {
-  return (new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator);
 }
