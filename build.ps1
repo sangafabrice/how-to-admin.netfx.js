@@ -1,4 +1,4 @@
-<#PSScriptInfo .VERSION 1.0.3#>
+<#PSScriptInfo .VERSION 1.0.4#>
 
 using namespace System.Management.Automation
 [CmdletBinding()]
@@ -27,7 +27,7 @@ param ()
 
   function ImportMgmtClass([string] $ClassName) {
     rc.exe /nologo /fo $(($ResourceFile = "$BinDir\$ClassName.res")) "$PSScriptRoot\cvmd2html.rc"
-    jsc.exe /nologo /target:library /reference:"$BinDir\Interop.WbemScripting.dll" /win32res:$ResourceFile /out:$(($ClassDll ="$BinDir\$(($FileName = $ClassName.Replace('_', '.'))).dll")) "$PSScriptRoot\src\$FileName.js"
+    jsc.exe /nologo /target:library /win32res:$ResourceFile /out:$(($ClassDll ="$BinDir\$(($FileName = $ClassName.Replace('_', '.'))).dll")) "$PSScriptRoot\src\$FileName.js"
     return $ClassDll
   }
 
@@ -37,7 +37,7 @@ param ()
   # Compile the source code with jsc.exe.
   $EnvPath = $Env:Path
   $Env:Path = "$Env:windir\Microsoft.NET\Framework$(If ([Environment]::Is64BitOperatingSystem) { '64' })\v4.0.30319\;$Env:Path"
-  jsc.exe /nologo /target:$($DebugPreference -eq 'Continue' ? 'exe':'winexe') /win32res:$ResourceFile /warn:0 /reference:$(ImportMgmtClass StdRegProv) /reference:"$BinDir\Interop.WbemScripting.dll" /reference:"$BinDir\Interop.IWshRuntimeLibrary.dll" /reference:$(Get-WpfLibrary PresentationFramework) /reference:$(Get-WpfLibrary PresentationCore) /reference:$(Get-WpfLibrary WindowsBase) /reference:System.Xaml.dll /out:$(($ConvertExe = "$BinDir\cvmd2html.exe")) "$(($SrcDir = "$PSScriptRoot\src"))\AssemblyInfo.js" "$SrcDir\utils.js" "$SrcDir\parameters.js" "$SrcDir\errorLog.js" "$SrcDir\package.js" "$SrcDir\setup.js" "$PSScriptRoot\index.js"
+  jsc.exe /nologo /target:$($DebugPreference -eq 'Continue' ? 'exe':'winexe') /win32res:$ResourceFile /warn:0 /reference:$(ImportMgmtClass StdRegProv) /reference:"$BinDir\Interop.IWshRuntimeLibrary.dll" /reference:$(Get-WpfLibrary PresentationFramework) /reference:$(Get-WpfLibrary PresentationCore) /reference:$(Get-WpfLibrary WindowsBase) /reference:System.Xaml.dll /out:$(($ConvertExe = "$BinDir\cvmd2html.exe")) "$(($SrcDir = "$PSScriptRoot\src"))\AssemblyInfo.js" "$SrcDir\utils.js" "$SrcDir\parameters.js" "$SrcDir\errorLog.js" "$SrcDir\package.js" "$SrcDir\setup.js" "$PSScriptRoot\index.js"
   $Env:Path = $EnvPath
 
   if ($LASTEXITCODE -eq 0) {

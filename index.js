@@ -1,6 +1,6 @@
 /**
  * @file Launches the shortcut target PowerShell script with the selected markdown as an argument.
- * @version 0.0.1.3
+ * @version 0.0.1.4
  */
 
 RequestAdminPrivileges(CommandLineArguments)
@@ -48,7 +48,7 @@ function WaitForExit(processId) {
   // The process termination event query. Win32_ProcessStopTrace requires admin rights to be used.
   var wqlQuery = "SELECT * FROM Win32_ProcessStopTrace WHERE ProcessName='cmd.exe' AND ProcessId=" + processId;
   // Wait for the process to exit.
-  return (new ManagementEventWatcher(wqlQuery)).WaitForNextEvent().Properties['ExitStatus'].Value;
+  return (new ManagementEventWatcher(wqlQuery)).WaitForNextEvent()['ExitStatus'];
 }
 
 /**
