@@ -1,4 +1,4 @@
-<#PSScriptInfo .VERSION 1.0.1#>
+<#PSScriptInfo .VERSION 1.0.2#>
 
 [CmdletBinding()]
 param ([string] $Root)
@@ -7,19 +7,14 @@ git add *.js *.ps*1 cvmd2html.rc version.h
 
 & {
   # Set the version of the executable
-  $versionHeaderPath = "$Root\version.h"
+  $versionHeader = 'version.h'
+  $versionHeaderPath = "$Root\$versionHeader"
   $diffLines = git diff HEAD *.js cvmd2html.rc
   if ($null -ne $diffLines) {
     $diff = ($diffLines | ForEach-Object { switch ($_[0]) { "+"{1} "-" {-1} } } | Measure-Object -Sum).Sum
-    $headInfoContent = git cat-file -p HEAD:src/AssemblyInfo.js | Select-Object -First 4
-    $versionMajor = [int] $headInfoContent[0].Substring('@set @MAJOR = '.Length).Trim()
-    $versionMinor = [int] $headInfoContent[1].Substring('@set @MINOR = '.Length).Trim()
-    $versionBuild = [int] $headInfoContent[2].Substring('@set @BUILD = '.Length).Trim()
-    $versionRevision = ([int] $headInfoContent[3].Substring('@set @REVISION = '.Length).Trim()) + ($diff -eq 0 ? 1:[Math]::Abs($diff))
-@"
-#define VER_VERSION $versionMajor,$versionMinor,$versionBuild,$versionRevision
-#define VER_VERSION_STR "$versionMajor.$versionMinor.$versionBuild.$versionRevision"
-"@ | Out-File $versionHeaderPath
+    $version = ([int](@(git cat-file -p HEAD:$versionHeader)[0] -split ',')[-1]) + ($diff -eq 0 ? 1:[Math]::Abs($diff))
+    $versionHeaderContent = (Get-Content $versionHeaderPath -Raw) -replace '((\d+,){3})\d+',"`${1}$version" -replace '((\d+\.){3})\d+',"`${1}$version"
+    $versionHeaderContent | Out-File $versionHeaderPath -NoNewline
   }
 }
 
@@ -30,7 +25,8 @@ function Set-SourceVersion([string] $ExtensionPattern, [string] $Filter, [script
     $version = git cat-file -p HEAD:$_ 2>&1 | Select-Object -First 4 | Where-Object { $_ -match $VersionMatch } | ForEach-Object $VersionGetter | Select-Object -Last 1
     if (-not [String]::IsNullOrWhiteSpace($version)) {
       $content = (Get-Content $_ -Raw) -replace $VersionMatch,($ReplacementFormat -f $version)
-      Set-Content "$Root\$_" $content -NoNewline
+      $bytes = Get-Content $_ -AsByteStream -ReadCount 3 -TotalCount 3
+      $content | Out-File "$Root\$_" -Encoding ($bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF ? 'utf8BOM':'utf8') -NoNewline
     }
   }
 }
