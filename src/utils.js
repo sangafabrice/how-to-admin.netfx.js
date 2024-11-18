@@ -1,9 +1,7 @@
 /**
  * @file some utility functions.
- * @version 0.0.1.3
+ * @version 0.0.1.4
  */
-
-var CommandLineArguments = Convert.ToNativeArray(Environment.GetCommandLineArgs(), Type.GetTypeHandle(new String())).slice(1);
 
 var AssemblyLocation = Assembly.GetExecutingAssembly().Location;
 
