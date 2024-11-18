@@ -1,6 +1,6 @@
 /**
  * @file Launches the shortcut target PowerShell script with the selected markdown as an argument.
- * @version 0.0.1.2
+ * @version 0.0.1.3
  */
 
 RequestAdminPrivileges(CommandLineArguments)
@@ -48,16 +48,7 @@ function WaitForExit(processId) {
   // The process termination event query. Win32_ProcessStopTrace requires admin rights to be used.
   var wqlQuery = "SELECT * FROM Win32_ProcessStopTrace WHERE ProcessName='cmd.exe' AND ProcessId=" + processId;
   // Wait for the process to exit.
-  var watcher = SWbemService.ExecNotificationQuery(wqlQuery);
-  var cmdProcess = watcher.NextEvent();
-  try {
-    return GetWBemObjectProperty(cmdProcess, 'ExitStatus');
-  } finally {
-    Marshal.FinalReleaseComObject(cmdProcess);
-    Marshal.FinalReleaseComObject(watcher);
-    watcher = null;
-    cmdProcess = null;
-  }
+  return (new ManagementEventWatcher(wqlQuery)).WaitForNextEvent().Properties['ExitStatus'].Value;
 }
 
 /**
@@ -66,10 +57,17 @@ function WaitForExit(processId) {
  */
 function RequestAdminPrivileges(args) {
   if (IsCurrentProcessElevated()) return;
-  var shell = new ShellClass();
-  shell.ShellExecute(AssemblyLocation, args.length ? String.Format('"{0}"', args.join('" "')):Missing.Value, Missing.Value, 'runas', Constants.vbHidden);
-  Marshal.FinalReleaseComObject(shell);
-  shell = null;
+  var startInfo = new ProcessStartInfo(AssemblyLocation, args.length ? String.Format('"{0}"', args.join('" "')):Missing.Value);
+  startInfo.UseShellExecute = true;
+  startInfo.Verb = 'runas';
+  startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+  try {
+    Process.Start(ProcessStartInfo(startInfo));
+  } catch (e: Win32Exception) {
+    Quit(0);
+  } catch (e: Exception) {
+    Quit(1);
+  }
   Quit(0);
 }
 
@@ -79,25 +77,5 @@ function RequestAdminPrivileges(args) {
  */
 function IsCurrentProcessElevated() {
   var HKU = 0x80000003;
-  var stdRegProvMethods = StdRegProv.Methods_;
-  var checkAccessMethod = stdRegProvMethods.Item('CheckAccess');
-  var checkAccessMethodParams = checkAccessMethod.InParameters;
-  var inParams = checkAccessMethodParams.SpawnInstance_();
-  SetWBemObjectProperty(inParams, 'hDefKey', Convert.ToInt32(HKU));
-  SetWBemObjectProperty(inParams, 'sSubKeyName', 'S-1-5-19\\Environment');
-  var outParams = StdRegProv.ExecMethod_(checkAccessMethod.Name, inParams);
-  try {
-    return GetWBemObjectProperty(outParams, 'bGranted');
-  } finally {
-    Marshal.FinalReleaseComObject(outParams);
-    Marshal.FinalReleaseComObject(inParams);
-    Marshal.FinalReleaseComObject(checkAccessMethodParams);
-    Marshal.FinalReleaseComObject(checkAccessMethod);
-    Marshal.FinalReleaseComObject(stdRegProvMethods);
-    stdRegProvMethods = null;
-    checkAccessMethod = null;
-    checkAccessMethodParams = null;
-    inParams = null;
-    outParams = null;
-  }
+  return StdRegProv.CheckAccess(HKU, 'S-1-5-19\\Environment');
 }
